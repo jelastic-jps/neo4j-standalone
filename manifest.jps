@@ -1,0 +1,55 @@
+---
+type: install
+version: 1.1
+id: neo4j-standalone
+baseUrl: https://raw.githubusercontent.com/jelastic-jps/neo4j-standalone/master
+description:
+  text: /text/description.md
+categories:
+  - apps/popular
+  - apps/clusters
+  - apps/dev-and-admin-tools
+  - apps/microservices
+
+logo: /images/neo4j-logo.png
+name: Neo4j Standalone
+skipNodeEmails: true
+
+globals:
+  password: ${fn.password(20)}
+  discoveryport: 5000
+
+onInstall:
+  - forEach(nodes.cp):
+      adjust-env-ars:
+         nodeId: ${@i.id}
+  - devops-stuff
+  - setAuth
+
+nodes:
+- count: 1
+  cloudlets: 32
+  image: "neo4j"
+  nodeGroup: cp
+  displayName: Neo4j
+  extip: true
+  startServiceOnCreation: false
+  env:
+    JELASTIC_EXPOSE: 7474
+    NEO4J_AUTH: neo4j/${globals.password}
+
+actions:
+  devops-stuff:
+    cmd[cp]: |-
+       wget ${baseUrl}/addons/openrc-jelinit -O /etc/init.d/openrc-jelinit
+       chmod a+x /etc/init.d/openrc-jelinit ; rc-update add openrc-jelinit default
+       /sbin/service iptables save
+       /sbin/rc-service jelinit start
+       #while $(! nc -vz localhost 7474) ;do sleep 1s; done
+       echo
+
+  setAuth:
+    cmd[cp:master]: |-
+       /var/lib/neo4j/bin/neo4j-admin set-initial-password ${globals.password}
+
+success: /text/success.md
