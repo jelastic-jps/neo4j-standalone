@@ -20,9 +20,6 @@ globals:
   discoveryport: 5000
 
 onInstall:
-  - forEach(nodes.cp):
-      adjust-env-ars:
-         nodeId: ${@i.id}
   - devops-stuff
   - setAuth
 
