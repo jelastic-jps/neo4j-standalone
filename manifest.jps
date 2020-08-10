@@ -38,15 +38,13 @@ nodes:
 actions:
   devops-stuff:
     cmd[cp]: |-
-       wget ${baseUrl}/addons/openrc-jelinit -O /etc/init.d/openrc-jelinit
-       chmod a+x /etc/init.d/openrc-jelinit ; rc-update add openrc-jelinit default
-       /sbin/service iptables save
-       /sbin/rc-service jelinit start
-       #while $(! nc -vz localhost 7474) ;do sleep 1s; done
+       echo -e "root soft nofile 524290\nroot hard nofile 524290\nneo4j soft nofile 524290\nneo4j hard nofile 524290" >>/etc/security/limits.conf
+       service jelinit start
+       update-rc.d -f jelinit defaults
        echo
 
   setAuth:
-    cmd[cp:master]: |-
+    cmd[cp]: |-
        /var/lib/neo4j/bin/neo4j-admin set-initial-password ${globals.password}
 
 success: /text/success.md
